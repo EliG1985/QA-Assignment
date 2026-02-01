@@ -25,7 +25,7 @@ test.describe('API Suite - ReqRes', () => {
     const response = await request.get('https://reqres.in/api/users/2');
     const body = await response.json();
     
-    // אימות מבנה הנתונים (Schema)
+    // Data Structure Validation
     expect(body).toHaveProperty('data');
     expect(body.data).toMatchObject({
       id: expect.any(Number),
