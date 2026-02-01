@@ -1,37 +1,48 @@
 const { test, expect } = require('@playwright/test');
 
-test.describe('API Suite - ReqRes', () => {
-  
-  // 1. Positive GET
-  test('API Positive: Get User List', async ({ request }) => {
-    const response = await request.get('https://reqres.in/api/users?page=2');
-    expect(response.ok()).toBeTruthy();
-    const body = await response.json();
-    expect(body.data.length).toBeGreaterThan(0);
-  });
+test.describe('Automation Exercise - API Suite', () => {
 
-  // 2. Negative POST
-  test('API Negative: Login without password', async ({ request }) => {
-    const response = await request.post('https://reqres.in/api/login', {
-      data: { email: "peter@klaven" }
-    });
-    expect(response.status()).toBe(400);
-    const body = await response.json();
-    expect(body.error).toBe('Missing password');
-  });
-
-  // 3. Schema/Contract Validation
-  test('API Contract: Single User Structure', async ({ request }) => {
-    const response = await request.get('https://reqres.in/api/users/2');
+  // 1. Positive GET: Fetch all products list
+  test('API Positive: Get All Products List', async ({ request }) => {
+    const response = await request.get('/api/productsList');
+    
+    // The server returns 200 OK
+    expect(response.status()).toBe(200);
+    
     const body = await response.json();
     
-    // Data Structure Validation
-    expect(body).toHaveProperty('data');
-    expect(body.data).toMatchObject({
+    // Automation Exercise API includes a responseCode inside the JSON
+    expect(body.responseCode).toBe(200);
+    expect(body.products.length).toBeGreaterThan(0);
+  });
+
+  // 2. Negative POST: Method not allowed (Trying to POST to a GET-only endpoint)
+  test('API Negative: Unsupported Request Method', async ({ request }) => {
+    // Attempting to POST to productsList which only supports GET
+    const response = await request.post('/api/productsList');
+    
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    
+    // The API informs us that this method is not supported
+    expect(body.responseCode).toBe(405);
+    expect(body.message).toBe('This request method is not supported.');
+  });
+
+  // 3. Schema/Contract Validation: Validate Product structure
+  test('API Contract: Product Object Structure', async ({ request }) => {
+    const response = await request.get('/api/productsList');
+    const body = await response.json();
+    
+    // Get the first product to validate its structure (Contract Testing)
+    const firstProduct = body.products[0];
+    
+    expect(firstProduct).toMatchObject({
       id: expect.any(Number),
-      email: expect.any(String),
-      first_name: expect.any(String),
-      last_name: expect.any(String)
+      name: expect.any(String),
+      price: expect.any(String),
+      brand: expect.any(String),
+      category: expect.any(Object)
     });
   });
 });
